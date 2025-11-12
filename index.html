@@ -1,0 +1,601 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Voice Macchiato - ワイヤーフレーム</title>
+  <style>
+    :root {
+      --bg: #0f1216;
+      --panel: #161a20;
+      --text: #e8ecf1;
+      --muted: #9aa6b2;
+      --accent: #5bd6b3;
+      --warning: #ffb86b;
+      --danger: #ff6b6b;
+      --ok: #7bd389;
+      --grid: #273142;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: linear-gradient(180deg,#0b1014,#12161c 40%,#0f1216 100%);
+      color: var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Noto Sans JP", sans-serif;
+      line-height: 1.5;
+    }
+    header {
+      position: sticky; top: 0; z-index: 10;
+      background: rgba(18,22,28,0.8);
+      backdrop-filter: blur(6px);
+      border-bottom: 1px solid #202634;
+    }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 16px; }
+    .brand {
+      display: flex; align-items: center; gap: 12px;
+    }
+    .brand .logo {
+      width: 36px; height: 36px; border-radius: 8px;
+      background: radial-gradient(circle at 30% 30%, #5bd6b3, #273142 60%);
+      border: 1px solid #3a455a;
+    }
+    .brand h1 { font-size: 18px; margin: 0; letter-spacing: 0.4px; }
+    main { padding: 16px; }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+    @media (min-width: 980px) {
+      .grid {
+        grid-template-columns: 1.2fr 0.8fr;
+      }
+    }
+    .panel {
+      background: var(--panel);
+      border: 1px solid #202634;
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .panel h2 {
+      font-size: 16px; margin: 0 0 12px 0;
+      color: var(--text); letter-spacing: 0.3px;
+    }
+    .subhead { color: var(--muted); font-size: 13px; margin-bottom: 12px; }
+    .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+    button, select, input[type="range"], .chip {
+      background: #1b212b; color: var(--text);
+      border: 1px solid #2a3345; border-radius: 8px;
+      padding: 10px 12px; font-size: 14px;
+    }
+    button:hover { border-color: #3a455a; }
+    button.primary { background: #1a2725; border-color: #2d4a46; color: #c9f7ea; }
+    button.danger { background: #271a1a; border-color: #4a2d2d; color: #ffdede; }
+    .vbar {
+      height: 64px; display: grid; grid-template-columns: repeat(24, 1fr);
+      gap: 4px; margin-top: 8px;
+    }
+    .vbar span {
+      display: block; height: 100%;
+      background: #243043; border-radius: 4px;
+    }
+    .vbar span.active { background: #4aa9ff; }
+    .meter {
+      height: 8px; background: #243043; border-radius: 999px; overflow: hidden;
+    }
+    .meter i { display: block; height: 100%; background: var(--accent); width: 40%; }
+    .badge { font-size: 12px; color: var(--muted); }
+    .chip {
+      display: inline-flex; gap: 8px; align-items: center; padding: 6px 10px;
+    }
+    .chip i { width: 10px; height: 10px; border-radius: 999px; background: #3a455a; }
+    .chip.ok i { background: var(--ok); }
+    .chip.warn i { background: var(--warning); }
+    .chip.danger i { background: var(--danger); }
+    .list { display: grid; gap: 8px; }
+    .list .item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 8px; background: #1a1f27; border: 1px solid #253047; border-radius: 8px;
+    }
+    .kv { display: grid; grid-template-columns: 140px 1fr; gap: 8px; }
+    .kv .k { color: var(--muted); }
+    .pill { padding: 6px 10px; border: 1px dashed #3a455a; border-radius: 999px; font-size: 12px; color: var(--muted); }
+    .foot { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    .divider { height: 1px; background: #202634; margin: 12px 0; }
+    .ghost { opacity: 0.6; }
+    .small { font-size: 12px; color: var(--muted); }
+    .code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      background: #12161c; border: 1px solid #202634; border-radius: 8px; padding: 8px;
+      overflow-x: auto; font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap brand">
+      <div class="logo" aria-hidden="true"></div>
+      <h1>Voice Macchiato / ボイスマキアート</h1>
+      <span class="pill" title="デモ用UI">ワイヤーフレーム</span>
+    </div>
+  </header>
+
+  <main class="wrap grid">
+    <!-- 左カラム：体験フロー -->
+    <section class="panel">
+      <h2>チェックインと音声測定</h2>
+      <p class="subhead">「あなたの国のこんにちは」を録音し、声の特徴を可視化。暫定マッピングをプレビューします。</p>
+
+      <div class="row">
+        <label class="chip"><i></i>マイク許可</label>
+        <button id="btnMic" class="primary">録音開始</button>
+        <button id="btnStop" class="danger">停止</button>
+        <select id="helloLang">
+          <option value="auto">言語（自動）</option>
+          <option>日本語</option>
+          <option>English</option>
+          <option>한국어</option>
+          <option>中文</option>
+          <option>Español</option>
+          <option>Français</option>
+          <option>Deutsch</option>
+        </select>
+      </div>
+
+      <div class="vbar" aria-label="音声ビジュアライザ（ダミー）" id="viz"></div>
+      <div class="divider"></div>
+
+      <div class="kv">
+        <div class="k">推定ピッチ</div><div id="kvPitch">—</div>
+        <div class="k">推定テンポ</div><div id="kvTempo">—</div>
+        <div class="k">推定音量</div><div id="kvVol">—</div>
+        <div class="k">推定トーン</div><div id="kvTone">—</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="row">
+        <span class="chip ok"><i></i>録音OK</span>
+        <span class="chip warn"><i></i>雑音あり</span>
+        <span class="chip"><i></i>言語検出: <b id="langOut" class="ghost">auto</b></span>
+      </div>
+
+      <div class="foot">
+        <button id="btnAnalyze" class="primary">解析してマッピング</button>
+        <button id="btnReset">やり直す</button>
+      </div>
+    </section>
+
+    <!-- 右カラム：アレルギー・文化ガード -->
+    <section class="panel">
+      <h2>アレルギー・文化配慮ガード</h2>
+      <p class="subhead">ヴィーガン／グルテンフリー／ナッツ不使用／乳・卵不使用／はちみつ不使用の安全枠を標準オン。</p>
+
+      <div class="list" id="allergyList">
+        <div class="item"><span>ヴィーガン</span><button data-key="vegan">オン</button></div>
+        <div class="item"><span>グルテンフリー</span><button data-key="glutenFree">オン</button></div>
+        <div class="item"><span>ナッツ不使用</span><button data-key="noNuts">オン</button></div>
+        <div class="item"><span>乳・卵不使用</span><button data-key="noDairyEgg">オン</button></div>
+        <div class="item"><span>はちみつ不使用</span><button data-key="noHoney">オン</button></div>
+        <div class="item"><span>ビネガーは明示時のみ</span><button data-key="vinegarPrompt">オン</button></div>
+      </div>
+
+      <p class="small">強制安全枠: 酸・甘・苦・とろみは標準レシピ±15%以内。</p>
+    </section>
+
+    <!-- 左下：声→風味ファミリー→スロット -->
+    <section class="panel">
+      <h2>声の特徴からドリンク設計</h2>
+      <p class="subhead">まず風味ファミリーを決定し、各スロット（ベース/果/甘/香/酸/食感）を自動組立。</p>
+
+      <div class="kv">
+        <div class="k">風味ファミリー</div><div id="family">—</div>
+        <div class="k">相性ルール</div><div id="pairing">—</div>
+        <div class="k">安全枠チェック</div><div id="safety">—</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <h3 class="subhead">スロット結果</h3>
+      <div class="list" id="slots">
+        <div class="item"><span>液体ベース</span><span id="slotBase" class="badge">—</span></div>
+        <div class="item"><span>フルーツ</span><span id="slotFruit" class="badge">—</span></div>
+        <div class="item"><span>甘味</span><span id="slotSweet" class="badge">—</span></div>
+        <div class="item"><span>香り</span><span id="slotAroma" class="badge">—</span></div>
+        <div class="item"><span>酸味ブースト</span><span id="slotAcid" class="badge">—</span></div>
+        <div class="item"><span>食感</span><span id="slotTexture" class="badge">—</span></div>
+      </div>
+
+      <div class="foot">
+        <button id="btnRecalc">相性ガードで再調整</button>
+      </div>
+    </section>
+
+    <!-- 右下：レシピ & 軽微カスタム -->
+    <section class="panel">
+      <h2>レシピとカスタマイズ</h2>
+      <p class="subhead">バリスタ指示と微調整（安全枠内）。</p>
+
+      <div class="list">
+        <div class="item">
+          <span>甘さ</span>
+          <input type="range" min="0" max="100" value="50" id="rangeSweet" />
+        </div>
+        <div class="item">
+          <span>酸味</span>
+          <input type="range" min="0" max="100" value="50" id="rangeAcid" />
+        </div>
+        <div class="item">
+          <span>とろみ</span>
+          <input type="range" min="0" max="100" value="40" id="rangeBody" />
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <h3 class="subhead">抽出指示（バリスタ向け）</h3>
+      <pre class="code" id="recipe">
+ベース: —
+フルーツ: —
+甘味: —
+香り: —
+酸味: —
+食感: —
+抽出温度: 冷/温（推奨: 冷）
+ブレンド時間: 60–90秒
+相性ノート: —
+      </pre>
+
+      <div class="foot">
+        <button id="btnSend" class="primary">ステーションに送信</button>
+        <button id="btnCopy">レシピをコピー</button>
+      </div>
+    </section>
+
+    <!-- 管理・ログ（任意） -->
+    <section class="panel">
+      <h2>セッションログ</h2>
+      <p class="subhead">体験の履歴（ダミー）。</p>
+      <div class="list" id="log"></div>
+    </section>
+  </main>
+
+  <script>
+    // --- ダミーデータ定義 ---
+    const FAMILIES = {
+      "Citrus Spark": {
+        base: ["果汁抽出","オーツ（薄め）"],
+        fruit: ["レモン","ライム","グレープフルーツ","ベリー補助"],
+        aroma: ["ミント","レモングラス"],
+        texture: ["クラッシュゼリー","ナタデココ","なし"],
+        acid: ["レモン","ライム","グレープフルーツ","なし"],
+        sweet: ["なし","メープル","三温糖"]
+      },
+      "Berry Velvet": {
+        base: ["オーツ","ココナッツ"],
+        fruit: ["いちご","ブルーベリー","ラズベリー","ブラックベリー"],
+        aroma: ["バニラ","ミント少量","なし"],
+        texture: ["白玉","クラッシュゼリー","なし"],
+        acid: ["レモン","なし"],
+        sweet: ["メープル","三温糖","黒糖"]
+      },
+      "Tropical Calm": {
+        base: ["ココナッツ"],
+        fruit: ["マンゴー","パイナップル"],
+        aroma: ["バニラ","シナモン極少","なし"],
+        texture: ["チアシード","ナタデココ","なし"],
+        acid: ["なし","ライム（控えめ）"],
+        sweet: ["メープル","黒糖","なし"]
+      },
+      "Stone Warm": {
+        base: ["オーツ"],
+        fruit: ["すもも","あんず","さくらんぼ","かき"],
+        aroma: ["シナモン","バニラ"],
+        texture: ["なし","クラッシュゼリー"],
+        acid: ["なし","レモン控えめ"],
+        sweet: ["三温糖","黒糖","メープル"]
+      },
+      "Pome & Jewel": {
+        base: ["果汁","オーツ"],
+        fruit: ["ざくろ","ぶどう","なし"],
+        aroma: ["ミント","レモンバーム","なし"],
+        texture: ["アロエ果肉","なし"],
+        acid: ["ライム","なし"],
+        sweet: ["なし","メープル","三温糖"]
+      },
+      "Mocha Soft": {
+        base: ["デカフェコーヒー"],
+        fruit: ["ベリー少量","なし"],
+        aroma: ["ココア","バニラ","シナモン微量"],
+        texture: ["タピオカ","なし"],
+        acid: ["なし"],
+        sweet: ["三温糖","メープル","なし"],
+        note: "柑橘強酸は避ける"
+      }
+    };
+
+    // ステート
+    const state = {
+      mic: false,
+      lang: "auto",
+      features: { pitch: null, tempo: null, vol: null, tone: null },
+      family: null,
+      slots: { base: null, fruit: null, sweet: null, aroma: null, acid: null, texture: null },
+      safety: { vegan:true, glutenFree:true, noNuts:true, noDairyEgg:true, noHoney:true, vinegarPrompt:true },
+      recipe: "",
+      logs: []
+    };
+
+    // --- 要素取得 ---
+    const el = {
+      viz: document.getElementById('viz'),
+      btnMic: document.getElementById('btnMic'),
+      btnStop: document.getElementById('btnStop'),
+      btnAnalyze: document.getElementById('btnAnalyze'),
+      btnReset: document.getElementById('btnReset'),
+      helloLang: document.getElementById('helloLang'),
+      kvPitch: document.getElementById('kvPitch'),
+      kvTempo: document.getElementById('kvTempo'),
+      kvVol: document.getElementById('kvVol'),
+      kvTone: document.getElementById('kvTone'),
+      langOut: document.getElementById('langOut'),
+      allergyList: document.getElementById('allergyList'),
+      family: document.getElementById('family'),
+      pairing: document.getElementById('pairing'),
+      safety: document.getElementById('safety'),
+      slotBase: document.getElementById('slotBase'),
+      slotFruit: document.getElementById('slotFruit'),
+      slotSweet: document.getElementById('slotSweet'),
+      slotAroma: document.getElementById('slotAroma'),
+      slotAcid: document.getElementById('slotAcid'),
+      slotTexture: document.getElementById('slotTexture'),
+      btnRecalc: document.getElementById('btnRecalc'),
+      rangeSweet: document.getElementById('rangeSweet'),
+      rangeAcid: document.getElementById('rangeAcid'),
+      rangeBody: document.getElementById('rangeBody'),
+      recipe: document.getElementById('recipe'),
+      btnSend: document.getElementById('btnSend'),
+      btnCopy: document.getElementById('btnCopy'),
+      log: document.getElementById('log')
+    };
+
+    // --- 可視化バーを準備 ---
+    const bars = [];
+    for (let i = 0; i < 24; i++) {
+      const s = document.createElement('span');
+      el.viz.appendChild(s);
+      bars.push(s);
+    }
+    let vizTimer;
+
+    // --- ダミー録音開始/停止 ---
+    el.btnMic.addEventListener('click', () => {
+      state.mic = true;
+      tickViz();
+      logAdd("録音開始: 「こんにちは」をどうぞ。");
+    });
+    el.btnStop.addEventListener('click', () => {
+      state.mic = false;
+      clearInterval(vizTimer);
+      bars.forEach(b => b.classList.remove('active'));
+      // ダミー特徴抽出
+      state.features = mockFeatures();
+      updateFeaturesUI();
+      logAdd("録音停止: 特徴を推定しました。");
+    });
+
+    function tickViz(){
+      clearInterval(vizTimer);
+      vizTimer = setInterval(() => {
+        bars.forEach(b => {
+          const on = Math.random() > 0.4;
+          b.classList.toggle('active', on);
+        });
+      }, 80);
+    }
+
+    // --- 言語選択 ---
+    el.helloLang.addEventListener('change', (e) => {
+      state.lang = e.target.value;
+      el.langOut.textContent = state.lang;
+    });
+
+    // --- 解析してマッピング ---
+    el.btnAnalyze.addEventListener('click', () => {
+      if (!state.features.pitch) {
+        state.features = mockFeatures(); // まだ無ければダミー
+        updateFeaturesUI();
+      }
+      const fam = mapFamily(state.features);
+      state.family = fam;
+      const slots = mapSlots(fam, state.features, state.safety);
+      state.slots = slots;
+      updateMappingUI();
+      updateRecipe();
+      logAdd(`風味ファミリー: ${fam} / スロット確定`);
+    });
+
+    // --- 再調整（相性ガード） ---
+    el.btnRecalc.addEventListener('click', () => {
+      const slots = applyPairingGuard(state.family, state.slots);
+      state.slots = slots;
+      updateMappingUI();
+      updateRecipe();
+      logAdd("相性ガード適用: レシピ微修正");
+    });
+
+    // --- リセット ---
+    el.btnReset.addEventListener('click', () => {
+      state.features = { pitch:null, tempo:null, vol:null, tone:null };
+      state.family = null;
+      state.slots = { base:null, fruit:null, sweet:null, aroma:null, acid:null, texture:null };
+      updateFeaturesUI();
+      updateMappingUI();
+      updateRecipe();
+      logAdd("セッション初期化");
+    });
+
+    // --- アレルギーガード操作 ---
+    el.allergyList.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const k = btn.dataset.key;
+        state.safety[k] = !state.safety[k];
+        btn.textContent = state.safety[k] ? "オン" : "オフ";
+        updateSafetyUI();
+      });
+    });
+
+    // --- レシピ送信/コピー ---
+    el.btnSend.addEventListener('click', () => {
+      logAdd("レシピ送信: 抽出ステーションへ（ダミー）");
+    });
+    el.btnCopy.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(el.recipe.textContent);
+        logAdd("レシピをコピーしました。");
+      } catch (e) {
+        logAdd("コピーに失敗しました。");
+      }
+    });
+
+    // --- スライダー反映（±15%安全枠の概念） ---
+    [el.rangeSweet, el.rangeAcid, el.rangeBody].forEach(r => {
+      r.addEventListener('input', () => {
+        updateRecipe();
+      });
+    });
+
+    // ===== ロジック（ダミー実装） =====
+    function mockFeatures(){
+      const pitch = ["高音","中高音","中音","低音"][rand(0,3)];
+      const tempo = ["速い","普通","ゆっくり"][rand(0,2)];
+      const vol   = ["大きい","普通","小さい"][rand(0,2)];
+      const tone  = ["喜び","落ち着き","自信","驚き"][rand(0,3)];
+      return { pitch, tempo, vol, tone };
+    }
+
+    function mapFamily(f){
+      if (f.pitch === "高音" && f.tempo === "速い" && ["喜び","驚き"].includes(f.tone)) return "Citrus Spark";
+      if (["中高音","中音"].includes(f.pitch) && f.tempo !== "速い" && ["落ち着き","喜び"].includes(f.tone)) return "Berry Velvet";
+      if (["低音","中音"].includes(f.pitch) && f.tempo !== "速い" && f.vol !== "大きい") return "Tropical Calm";
+      if (f.pitch === "中音" && f.tempo === "ゆっくり" && f.tone === "落ち着き") return "Stone Warm";
+      if (f.pitch === "中音" && f.tempo === "普通") return "Pome & Jewel";
+      if (f.pitch === "低音" && f.vol === "大きい") return "Mocha Soft";
+      return "Pome & Jewel";
+    }
+
+    function mapSlots(fam, f, safety){
+      const pool = FAMILIES[fam];
+      const pick = (arr) => arr[rand(0, arr.length-1)];
+      // ビネガーは安全枠で除外（ここでは酸味候補からビネガーをそもそも入れていない）
+      const base = pick(pool.base);
+      let fruit = pick(pool.fruit);
+      let aroma = pick(pool.aroma);
+      let texture = pick(pool.texture);
+      let acid = pick(pool.acid);
+      let sweet = pick(pool.sweet);
+
+      // 相性・文化配慮（簡略）
+      if (fam === "Mocha Soft" && ["レモン","ライム","グレープフルーツ"].includes(acid)) acid = "なし";
+      if (fam === "Tropical Calm" && acid === "ライム（控えめ）" && f.tone === "驚き") sweet = "なし"; // 切れ味重視に寄せる
+
+      // アレルギー枠（デモ用：すべて植物性/ナッツ不使用で定義済）
+      return { base, fruit, sweet, aroma, acid, texture };
+    }
+
+    function applyPairingGuard(fam, slots){
+      // 例: ベリー系はタイム/ローリエを回避（ここでは存在しないため、バニラへ寄せる）
+      if (fam === "Berry Velvet" && !["バニラ","ミント少量","なし"].includes(slots.aroma)) {
+        slots.aroma = "バニラ";
+      }
+      // 柑橘＋ミントが基本。柑橘が無い場合はライムへ寄せる
+      if (fam === "Citrus Spark" && !["レモン","ライム","グレープフルーツ"].includes(slots.fruit)) {
+        slots.fruit = "ライム";
+      }
+      return slots;
+    }
+
+    function updateFeaturesUI(){
+      el.kvPitch.textContent = state.features.pitch ?? "—";
+      el.kvTempo.textContent = state.features.tempo ?? "—";
+      el.kvVol.textContent = state.features.vol ?? "—";
+      el.kvTone.textContent = state.features.tone ?? "—";
+    }
+
+    function updateMappingUI(){
+      el.family.textContent = state.family ?? "—";
+      el.pairing.textContent = state.family ? pairingNote(state.family) : "—";
+      el.safety.textContent = safetyNote();
+      el.slotBase.textContent = state.slots.base ?? "—";
+      el.slotFruit.textContent = state.slots.fruit ?? "—";
+      el.slotSweet.textContent = state.slots.sweet ?? "—";
+      el.slotAroma.textContent = state.slots.aroma ?? "—";
+      el.slotAcid.textContent = state.slots.acid ?? "—";
+      el.slotTexture.textContent = state.slots.texture ?? "—";
+    }
+
+    function updateSafetyUI(){
+      el.safety.textContent = safetyNote();
+    }
+
+    function pairingNote(fam){
+      switch (fam){
+        case "Citrus Spark": return "柑橘×ミント/レモングラス。酸は強め可、甘さは控えめ推奨。";
+        case "Berry Velvet": return "ベリー×バニラが軸。ミントは少量。ゼリー/白玉で食感付与。";
+        case "Tropical Calm": return "マンゴー/パイン×ココナッツ。酸は控えめ、香りは穏やか。";
+        case "Stone Warm": return "ストーンフルーツ×シナモン/バニラ。温かみのある甘さ。";
+        case "Pome & Jewel": return "ざくろ/ぶどう/なし×ミント/レモンバーム。スッキリ寄せ。";
+        case "Mocha Soft": return "デカフェモカ×ココア/バニラ。柑橘強酸は避ける。";
+        default: return "—";
+      }
+    }
+
+    function safetyNote(){
+      const keys = Object.entries(state.safety).filter(([k,v]) => v).map(([k]) => k);
+      const labelMap = {
+        vegan:"ヴィーガン", glutenFree:"グルテンフリー", noNuts:"ナッツ不使用",
+        noDairyEgg:"乳・卵不使用", noHoney:"はちみつ不使用", vinegarPrompt:"ビネガーは明示時のみ"
+      };
+      const labels = keys.map(k => labelMap[k]).join(" / ");
+      return labels ? `安全枠: ${labels} / レシピ許容±15%` : "安全枠: なし（注意）";
+    }
+
+    function updateRecipe(){
+      const s = state.slots;
+      const sweetLvl = clampPct(el.rangeSweet.value);
+      const acidLvl = clampPct(el.rangeAcid.value);
+      const bodyLvl = clampPct(el.rangeBody.value);
+
+      const lines = [
+        `ベース: ${s.base ?? "—"}`,
+        `フルーツ: ${s.fruit ?? "—"}`,
+        `甘味: ${s.sweet ?? "—"}（強度 ${sweetLvl}%）`,
+        `香り: ${s.aroma ?? "—"}`,
+        `酸味: ${s.acid ?? "—"}（強度 ${acidLvl}%）`,
+        `食感: ${s.texture ?? "—"}（とろみ ${bodyLvl}%）`,
+        `抽出温度: 冷/温（推奨: ${state.family === "Stone Warm" ? "温" : "冷"})`,
+        `ブレンド時間: 60–90秒`,
+        `相性ノート: ${pairingNote(state.family ?? "")}`
+      ];
+      el.recipe.textContent = lines.join("\n");
+    }
+
+    function clampPct(v){
+      // 安全枠±15%（デモ用）：UIは0–100でも最終値は 35–65 にクランプ
+      const n = Number(v);
+      return Math.min(65, Math.max(35, Math.round(n)));
+    }
+
+    function logAdd(msg){
+      const time = new Date().toLocaleTimeString('ja-JP', { hour12: false });
+      state.logs.push({ time, msg });
+      const div = document.createElement('div');
+      div.className = "item";
+      div.innerHTML = `<span class="small">${time}</span><span>${msg}</span>`;
+      el.log.prepend(div);
+    }
+
+    function rand(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+  </script>
+</body>
+</html>
